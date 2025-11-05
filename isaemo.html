@@ -1,0 +1,72 @@
+<!doctype html>
+questionEl.textContent = `Pergunta ${idx+1} de ${quiz.length}: ${item.q}`;
+optionsEl.innerHTML = '';
+item.a.forEach((opt,i)=>{
+const btn = document.createElement('button'); btn.className='opt'; btn.type='button'; btn.innerHTML = opt; btn.dataset.idx=i;
+btn.addEventListener('click', ()=> selectOption(btn, item.score[i]));
+optionsEl.appendChild(btn);
+});
+updateProgress(); nextBtn.disabled = true;
+}
+
+
+function selectOption(btn, pts){
+Array.from(optionsEl.children).forEach(b=>b.classList.remove('selected'));
+btn.classList.add('selected'); nextBtn.disabled = false; nextBtn.dataset.chosen = pts;
+}
+
+
+nextBtn.addEventListener('click', ()=>{
+const chosen = parseInt(nextBtn.dataset.chosen||0,10);
+totalScore += chosen; nextBtn.dataset.chosen = ''; idx++;
+if(idx < quiz.length) renderQuestion(); else showResult();
+});
+
+
+function updateProgress(){const pct = Math.round((idx/quiz.length)*100); progressBar.style.width = pct + '%';}
+
+
+function showResult(){
+document.getElementById('quiz-screen').style.display='none';
+document.getElementById('result-screen').style.display='block';
+const max = quiz.reduce((s,it)=>s + Math.max(...it.score),0);
+const pct = Math.round((totalScore / max) * 100);
+document.getElementById('scoreText').textContent = `${pct}% de amor e zoeira`;
+let msg = '';
+if(pct < 50) msg = 'Isa carrega esse relacionamento nas costas 😂';
+else if(pct < 85) msg = 'Vocês se equilibram — mas a Isa ainda lidera 😏';
+else msg = 'Isa e Ícaro, o amor de vocês é puro fogo! 🔥';
+document.getElementById('resultMessage').textContent = msg;
+explodeHearts(50 + Math.floor(pct/2));
+}
+
+
+function makeHeart(){
+const h=document.createElement('div'); h.className='heart'; const heartsBox=document.getElementById('hearts'); heartsBox.appendChild(h);
+const angle=(Math.random()*120-60); const dist=80+Math.random()*220; const tx=Math.cos(angle*Math.PI/180)*dist+(Math.random()*200-100);
+const ty=-(120+Math.random()*300); const rot=Math.random()*720-360; const s=0.6+Math.random()*1.4;
+h.style.setProperty('--tx',tx+'px'); h.style.setProperty('--ty',ty+'px'); h.style.setProperty('--rot',rot); h.style.setProperty('--s',s);
+h.style.left=(50+(Math.random()*60-30))+'%'; h.style.top=(50+(Math.random()*40-20))+'%';
+h.style.animation=`popMove ${1.4+Math.random()*1.4}s cubic-bezier(.2,.8,.2,1) forwards`;
+setTimeout(()=>{ h.remove(); },3200);
+}
+
+
+function explodeHearts(count){ for(let i=0;i<count;i++){ setTimeout(makeHeart,i*20+Math.random()*200); } }
+
+
+const shareBtn=document.getElementById('shareBtn');
+shareBtn.addEventListener('click',async()=>{
+const text=`Fiz o quiz do amor com o Ícaro 💞 olha nosso resultado! → ${document.getElementById('scoreText').textContent}: ${document.getElementById('resultMessage').textContent}`;
+if(navigator.share){ try{ await navigator.share({title:'Quiz da Isa e do Ícaro',text}); } catch(e){ alert('Compartilhamento cancelado.'); } }
+else{ try{ await navigator.clipboard.writeText(text); alert('Resultado copiado!'); } catch(e){ alert('Seu navegador não suporta compartilhamento direto.'); } }
+});
+
+
+document.getElementById('retryBtn').addEventListener('click',()=>{ idx=0; totalScore=0; document.getElementById('result-screen').style.display='none'; document.getElementById('quiz-screen').style.display='block'; renderQuestion(); });
+
+
+renderQuestion();
+</script>
+</body>
+</html>
